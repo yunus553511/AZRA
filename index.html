@@ -1272,18 +1272,41 @@
     function goToSlide(n) {
         if (n === currentSlide) return;
         const direction = n > currentSlide ? 1 : -1;
-        slides.forEach(s => s.classList.remove('active', 'prev'));
-        const prev = slides[currentSlide - 1];
-        if (direction > 0) prev.classList.add('prev');
-        currentSlide = n;
-        const active = slides[currentSlide - 1];
-        if (direction < 0) {
-            active.style.transition = 'none';
-            active.style.transform = 'translateX(-100%)';
-            active.offsetHeight;
-            active.style.transition = '';
+
+        const oldSlide = slides[currentSlide - 1];
+        const newSlide = slides[n - 1];
+
+        // Remove all states
+        slides.forEach(s => {
+            s.classList.remove('active', 'prev', 'next');
+            s.style.transition = '';
+            s.style.transform = '';
+        });
+
+        if (direction > 0) {
+            // Forward: old goes left, new comes from right
+            oldSlide.classList.add('prev');
+            newSlide.classList.add('active');
+        } else {
+            // Backward: position new slide to the left instantly, then animate in
+            newSlide.style.transition = 'none';
+            newSlide.style.transform = 'translateX(-100%)';
+            newSlide.style.opacity = '0';
+            newSlide.offsetHeight; // force reflow
+
+            // Animate old slide out to the right
+            oldSlide.style.transition = 'all 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
+            oldSlide.style.transform = 'translateX(100%)';
+            oldSlide.style.opacity = '0';
+
+            // Animate new slide in from left
+            newSlide.style.transition = 'all 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
+            newSlide.style.transform = 'translateX(0)';
+            newSlide.style.opacity = '1';
+            newSlide.classList.add('active');
         }
-        active.classList.add('active');
+
+        currentSlide = n;
         updateUI();
     }
 
